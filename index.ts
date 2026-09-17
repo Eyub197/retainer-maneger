@@ -15,6 +15,14 @@ function isRetainerTime(): boolean {
 	return false;
 }
 
-// TODO read the json value from the file
+async function getValueFromStorege() {
+	const path = "storage.json";
+	const file = Bun.file(path);
+
+	const { amount } = await file.json();
+	return amount;
+}
+
+getValueFromStorege();
 // every time switch it back
 // ! edge case : what if the app is opened 2 times a day
