@@ -1,8 +1,11 @@
 const today = new Date().getDate();
+const { amount } = await getValueFromStorege();
+let notified = false;
 
-async function setNotification(amountOfRetainers: number): Promise<void> {
-	const message: string = `Put on your retainer${amountOfRetainers < 1 ? "s" : ""}`;
+async function sendNotification(amountOfRetainers: number): Promise<void> {
+	const message: string = `Put on your retainer${amountOfRetainers === 2 ? "s" : ""}`;
 	await Bun.$`notify-send -t 5000 ${amountOfRetainers} '${message}'`;
+	changeValueInStorege();
 }
 
 function isRetainerTime(): boolean {
@@ -10,7 +13,7 @@ function isRetainerTime(): boolean {
 	const hours = date.getHours();
 	const minutes = date.getMinutes();
 
-	if (hours === 14 && minutes === 21) {
+	if (hours === 22 && minutes === 50) {
 		return true;
 	}
 
@@ -39,4 +42,15 @@ async function changeValueInStorege() {
 	);
 }
 
-changeValueInStorege();
+function run() {
+	const isItTime = isRetainerTime();
+
+	if (isItTime && !notified) {
+		notified = true;
+		sendNotification(amount);
+	}
+}
+
+setInterval(run, 30_000);
+
+//TODO make it run any time after the given tiem
