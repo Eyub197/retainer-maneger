@@ -23,6 +23,16 @@ async function getValueFromStorege() {
 	return amount;
 }
 
-getValueFromStorege();
-// every time switch it back
+async function changeValueInStorege() {
+	const currentValue = await getValueFromStorege();
+	const newValue = currentValue === 1 ? 2 : 1;
+
+	await Bun.write(
+		"storage.json",
+		JSON.stringify({ amount: newValue }, null, 2),
+	);
+}
+
+changeValueInStorege();
+
 // ! edge case : what if the app is opened 2 times a day
