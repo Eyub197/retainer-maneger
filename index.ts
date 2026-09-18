@@ -1,8 +1,15 @@
+type Amount = 1 | 2;
+
+interface StoregeData {
+	amount: Amount;
+	date: number;
+}
+
 const today = new Date().getDate();
 const { amount } = await getValueFromStorege();
 let notified = false;
 
-async function sendNotification(amountOfRetainers: number): Promise<void> {
+async function sendNotification(amountOfRetainers: Amount): Promise<void> {
 	const message: string = `Put on your retainer${amountOfRetainers === 2 ? "s" : ""}`;
 	await Bun.$`notify-send -t 5000 ${amountOfRetainers} '${message}'`;
 	changeValueInStorege();
@@ -20,15 +27,16 @@ function isRetainerTime(): boolean {
 	return false;
 }
 
-async function getValueFromStorege() {
+async function getValueFromStorege(): Promise<StoregeData> {
 	const path = "storage.json";
 	const file = Bun.file(path);
 
 	const { amount, date } = await file.json();
-	return { amount, date };
+	if (amount === 1 && amount === 2) return { amount, date };
+	throw new Error("amount is not a number");
 }
 
-async function changeValueInStorege() {
+async function changeValueInStorege(): Promise<void> {
 	const { amount, date } = await getValueFromStorege();
 
 	if (date === today) {
@@ -42,7 +50,7 @@ async function changeValueInStorege() {
 	);
 }
 
-function run() {
+function run(): void {
 	const isItTime = isRetainerTime();
 
 	if (isItTime && !notified) {
@@ -53,4 +61,5 @@ function run() {
 
 setInterval(run, 30_000);
 
+//TODO tests
 //TODO make it run any time after the given tiem
