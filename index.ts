@@ -32,8 +32,8 @@ async function getValueFromStorege(): Promise<StoregeData> {
 	const file = Bun.file(path);
 
 	const { amount, date } = await file.json();
-	if (amount === 1 && amount === 2) return { amount, date };
-	throw new Error("amount is not a number");
+	if (amount === 1 || amount === 2) return { amount, date };
+	throw new Error("must be a 1 or 2");
 }
 
 async function changeValueInStorege(): Promise<void> {
@@ -62,4 +62,4 @@ function run(): void {
 setInterval(run, 30_000);
 
 //TODO tests
-//TODO make it run any time after the given tiem
+//TODO make it run any time after the given te
