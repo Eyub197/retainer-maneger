@@ -1,0 +1,21 @@
+right now this system dependes too much on my habits but this is the bare bones version and slowly will get better
+
+1. Move the notification to a systemd user timer. This is the big one, and it alone kills five separate dependencies: the per-monitor race, the need for the bar to be running, the missed-window problem, the 30-minute window hack, and the storage file. systemd already tracks whether a unit ran today, so isRetainerTime and the dedup logic both delete themselves.
+
+2. Decide what “missed” should mean. Persistent=true reruns a missed timer at the next opportunity, which could be 9am the next morning. For a retainer reminder that might be useless or might be better than nothing. Pick deliberately rather than inheriting whatever systemd defaults to.
+
+3. Add retry on failure. If wifi is down at 22:30 the notification is silently lost today. Restart=on-failure with RestartSec=60 and a few attempts fixes it.
+
+4. Make failures visible. Right now a crash goes nowhere you’d ever look. Under a unit you get journalctl --user -u retainer-notify and actual history of whether it fired.
+
+5. Swap getDate() for dayNumber. Removes the assumption that you open the laptop often enough that day-of-month never repeats between runs.
+
+6. Pin the day cutoff to an explicit local hour. Replaces the accidental UTC-midnight flip with something intentional, and stops it drifting an hour at daylight saving.
+
+7. Make the bar widget read-only. It should print and nothing else. A widget that runs once per screen has no business having side effects, and that’s the root cause of the duplicate notifications rather than the race itself.
+
+8. Move the env and path handling into the unit. WorkingDirectory= and EnvironmentFile= instead of relying on cd inside an exec string, so it isn’t tied to how it happens to get launched.
+
+9. Add two tests. One for getRetainerNumber across a known day boundary, one for the already-notified comparison. Enough to catch a regression when you refactor later.
+
+10. Move it off your laptop entirely. A cron on a cheap VPS, a Raspberry Pi, or a scheduled GitHub Action means your twin gets reminded whether or not your machine is on, or with you, or working. Everything above reduces your involvement. This is the only item that actually removes it.
