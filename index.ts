@@ -2,6 +2,8 @@ const STORAGE_FILE = "last-time-notification-send.txt";
 const NOTIFY_HOUR = 22;
 const NOTIFY_MINUTE = 30;
 const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
+const mode = Bun.argv[2];
+const value = getRetainerNumber();
 
 function getRetainerNumber(): 1 | 2 {
 	const dayNumber = Math.floor(Date.now() / MS_IN_A_DAY);
@@ -32,10 +34,23 @@ async function pushPhoneNotification(value: number) {
 	await Bun.file(STORAGE_FILE).write(today.toString());
 }
 
-if (isRetainerTime()) {
-	const value = getRetainerNumber();
-
-	// we need the comment becaouse it shows its output int the bar
-	console.log(value);
-	await pushPhoneNotification(value);
+async function run() {
+	//  the the early returns are isndie of each case becaouse else it wont fail loudly. Aka if there is a typo it wont go into the default case
+	switch (mode) {
+		case "--bar":
+			if (!isRetainerTime()) return;
+			// need the console log to output the value in the bar
+			console.log(value);
+			break;
+		case "--notify":
+			if (!isRetainerTime()) return;
+			await pushPhoneNotification(value);
+			break;
+		default:
+			console.error(`unknown mode: ${mode}`);
+			// this means failure triggers restart=on-failure
+			process.exit(1);
+	}
 }
+
+run();
