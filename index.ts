@@ -26,10 +26,15 @@ async function pushPhoneNotification(value: number) {
 
 	if ((await readLastNotifiedDay()) === today) return;
 
-	await fetch(`https://ntfy.sh/${Bun.env.NTFY_TOPIC}`, {
+	const res = await fetch(`https://ntfy.sh/${Bun.env.NTFY_TOPIC}`, {
 		method: "POST",
 		body: `${value} today`,
 	});
+
+	if (!res.ok) {
+		console.error(`ntfy request is not successful: ${res.status}`);
+		process.exit(1);
+	}
 
 	await Bun.file(STORAGE_FILE).write(today.toString());
 }
@@ -43,6 +48,11 @@ async function run() {
 			console.log(value);
 			break;
 		case "--notify":
+			if (!Bun.env.NTFY_TOPIC) {
+				console.error("NTFY_TOPIC is not found");
+				// old unix convention for config errors
+				process.exit(78);
+			}
 			if (!isRetainerTime()) return;
 			await pushPhoneNotification(value);
 			break;
